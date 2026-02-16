@@ -101,7 +101,7 @@
         position: sticky;
         top: 0;
         z-index: 10;
-        display: none;
+        display: flex;
         align-items: center;
         gap: 8px;
         padding: 8px 10px;
@@ -478,7 +478,7 @@
         function renderTree() {
           buildVisibleRows();
           renderViewport();
-          syncBulkBar();
+          updateSelectionUI();
         }
 
         function renderViewport() {
@@ -578,8 +578,7 @@
               return;
             }
             if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
-              window.open(node.url, "_blank", "noopener,noreferrer");
-              setStatus("新規タブで開きました: " + node.url);
+              openBookmarkInBackground(node.url);
             }
           });
 
@@ -755,21 +754,39 @@
 
           state.lastSelectedId = id;
           renderViewport();
-          syncBulkBar();
+          updateSelectionUI();
         }
 
         function clearSelection() {
           state.selectedIds.clear();
           state.lastSelectedId = null;
           renderViewport();
-          syncBulkBar();
+          updateSelectionUI();
         }
 
-        function syncBulkBar() {
+        function updateSelectionUI() {
           const count = state.selectedIds.size;
-          els.bulkBar.classList.toggle("show", count > 0);
           els.selectedCount.textContent = `${count}件選択`;
+          els.bulkDeleteBtn.disabled = count === 0;
+          els.bulkMoveBtn.disabled = count === 0;
           refreshMoveTargets();
+        }
+
+        function openBookmarkInBackground(url) {
+          try {
+            window.open(url, "_blank", "noopener,noreferrer");
+            setTimeout(() => {
+              try {
+                window.focus();
+              } catch (_) {
+                // ignore focus errors
+              }
+            }, 0);
+            setStatus("新規タブで開きました（ブラウザ仕様により前面維持できない場合があります）: " + url);
+          } catch (err) {
+            console.error(err);
+            setStatus("タブを開けませんでした: " + url);
+          }
         }
 
         function refreshMoveTargets() {
