@@ -578,7 +578,7 @@
               return;
             }
             if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
-              openBookmarkInBackground(node.url);
+              openBookmarkInWindow(node.url, e);
             }
           });
 
@@ -772,22 +772,25 @@
           refreshMoveTargets();
         }
 
-        function openBookmarkInBackground(url) {
+        function openBookmarkInWindow(url, event) {
           try {
-            window.open(url, "_blank");
-            // Browser security policies may prevent forcing focus back in some environments.
-            window.focus();
-            setTimeout(() => {
-              try {
-                window.focus();
-              } catch (_) {
-                // ignore focus errors
-              }
-            }, 0);
-            setStatus("新規タブで開きました（ブラウザ仕様により前面維持できない場合があります）: " + url);
+            if (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            const popup = window.open(
+              url,
+              "_blank",
+              "popup=yes,width=1200,height=800,resizable=yes,scrollbars=yes"
+            );
+            if (!popup) {
+              location.href = url;
+              return;
+            }
+            setStatus("別ウィンドウで開きました: " + url);
           } catch (err) {
             console.error(err);
-            setStatus("タブを開けませんでした: " + url);
+            location.href = url;
           }
         }
 
