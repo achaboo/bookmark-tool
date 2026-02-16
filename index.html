@@ -774,7 +774,9 @@
 
         function openBookmarkInBackground(url) {
           try {
-            window.open(url, "_blank", "noopener,noreferrer");
+            window.open(url, "_blank");
+            // Browser security policies may prevent forcing focus back in some environments.
+            window.focus();
             setTimeout(() => {
               try {
                 window.focus();
